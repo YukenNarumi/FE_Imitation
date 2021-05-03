@@ -212,12 +212,17 @@ int GetUnitIndex(MapPosition search_position) {
 /// <returns></returns>
 LRESULT WINAPI MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
-    std::string test;
+    std::string draw_map;
     for (int y = 0; y < MAP_HEIGHT; y++) {
         for (int x = 0; x < MAP_WIDTH; x++) {
-            test += cell_list_[cells[y][x]].aa;
+            int index = GetUnitIndex(MapPosition{x, y});
+            if (kUndefined < index) {
+                draw_map += job_list_[unit_list_[index].job].aa;
+            } else {
+                draw_map += cell_list_[cells[y][x]].aa;
+            }
         }
-        test += "\n";
+        draw_map += "\n";
     }
 
     HDC hdc;
@@ -245,7 +250,7 @@ LRESULT WINAPI MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
     case WM_LBUTTONDOWN:
         hdc = GetDC(hWnd);
-        //TextOut(hdc_, 10, 10, test.c_str(), lstrlen(test.c_str()));
+        //TextOut(hdc_, 10, 10, draw_map.c_str(), lstrlen(draw_map.c_str()));
         return 0;
 
         //----ペイント----
@@ -258,11 +263,11 @@ LRESULT WINAPI MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         rect.right = kWindowWidth;
         rect.bottom = kWindowHeight;
         //DrawText(hdc, "使用例 sample\nプリフィックス(&A)", -1, &rect, DT_WORDBREAK | DT_CENTER);
-        DrawText(   hdc,
-                    test.c_str(),
-                    -1,
-                    &rect,
-                    DT_WORDBREAK);
+        DrawText(hdc,
+                 draw_map.c_str(),
+                 -1,
+                 &rect,
+                 DT_WORDBREAK);
 
         EndPaint(hWnd, &paintstruct);
         break;
