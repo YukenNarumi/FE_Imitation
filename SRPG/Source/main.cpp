@@ -305,7 +305,7 @@ INT WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, INT) {
     DWORD window_style = ~(WS_MAXIMIZEBOX | WS_THICKFRAME);
     window_style &= WS_OVERLAPPEDWINDOW;
 
-    const int first_pirate_index = 10;
+    const int kFirstPirateIndex = 10;
     int pirate_count = 0;
     for (int y = 0; y < MAP_HEIGHT; y++) {
         for (int x = 0; x < MAP_WIDTH; x++) {
@@ -314,15 +314,16 @@ INT WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, INT) {
                 // 文字を数値に変換
                 cells[y][x] = c - '0';
             } else {
-                //if (c == 'k') {
-                //    unit_list_[first_pirate_index + pirate_count].position = MapPosition{x, y};
-                //    pirate_count++;
-                //} else {
-                //    // マルスに該当するAA
-                //    int index = c = 'a';
-                //    unit_list_[index].position = MapPosition{x, y};
-                //}
-                int index = (c == 'k') ? (first_pirate_index + pirate_count) : (c = 'a');
+                // ユニットの初期座標設定
+                // 'k' = 雑魚
+                // 'a' = マルス
+                int index;
+                if (c == 'k') {
+                    index = kFirstPirateIndex + pirate_count;
+                    pirate_count++;
+                } else {
+                    index = (c - 'a');
+                }
                 unit_list_[index].position = MapPosition{x, y};
                 cells[y][x] = Cell::kPlane;
             }
