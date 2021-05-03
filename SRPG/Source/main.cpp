@@ -185,14 +185,22 @@ std::vector<UnitDescription> unit_list_ = {
     { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Weapon::kAxe },
 };
 
-//int GetUnit(MapPosition search_position) {
-//    auto unit = std::find_if(unit_list_.begin(), unit_list_.end(), [&](auto* obj) { return obj->position == search_position; });
-//    if (unit == unit_list_.end()) {
-//        return kUndefined;
-//    }
-//    size_t result = std::distance(unit_list_.begin(), unit);
-//    return result;
-//}
+/// <summary>
+/// 指定座標のユニットインデックス取得
+/// </summary>
+/// <param name="search_position"></param>
+/// <returns></returns>
+int GetUnitIndex(MapPosition search_position) {
+    auto unit = std::find_if(unit_list_.begin(), unit_list_.end(), [&](UnitDescription obj) {
+        return (obj.position.x == search_position.x && obj.position.y == search_position.y);
+    });
+
+    if (unit == unit_list_.end()) {
+        return kUndefined;
+    }
+    int result = std::distance(unit_list_.begin(), unit);
+    return result;
+}
 
 /// <summary>
 /// アプリケーションウィンドウのメッセージハンドラ
