@@ -43,10 +43,10 @@ enum Cell {
 };
 
 struct CellDescription {
-    std::string name_;
-    std::string aa_;
-    int defence_;
-    bool heal_;
+    std::string name;
+    std::string aa;
+    int defence;
+    bool heal;
 };
 
 std::vector<CellDescription> cell_list_ = {
@@ -93,8 +93,8 @@ enum Job {
     kJobMax,
 };
 struct JobDescription {
-    std::string name_;
-    int consts_[Cell::kCellMax];
+    std::string name;
+    int consts[Cell::kCellMax];
 };
 std::vector<JobDescription> job_list_ = {
     { "ÉçÅ[Éh",     (-1, 1, 2,  4, -1, 1, 2, 2) },
@@ -124,13 +124,13 @@ enum Weapon {
     kWeaponMax,
 };
 struct WeaponDescription {
-    std::string name_;
-    int power_;
-    int weight_;
-    int hit_;
-    int critical_;
-    int range_min_;
-    int range_max_;
+    std::string name;
+    int power;
+    int weight;
+    int hit;
+    int critical;
+    int range_min;
+    int range_max;
 };
 std::vector<WeaponDescription> Weapon_list_ = {
     { "ìSåï",    5, 2, 100,  0, 1, 1 },
@@ -206,7 +206,7 @@ LRESULT WINAPI MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     std::string test;
     for (int y = 0; y < MAP_HEIGHT; y++) {
         for (int x = 0; x < MAP_WIDTH; x++) {
-            test += cell_list_[cells[y][x]].aa_;
+            test += cell_list_[cells[y][x]].aa;
         }
         test += "\n";
     }
