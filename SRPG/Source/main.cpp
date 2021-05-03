@@ -222,6 +222,25 @@ bool IsMatchCursorPosition(int x, int y) {
 }
 
 /// <summary>
+/// カーソル移動処理
+/// </summary>
+/// <param name="input_param"></param>
+void MoveCursor(WPARAM input_param) {
+    AtlTrace("KeyUp = %Xh\n", input_param);
+
+    switch (input_param) {
+    case 'w': cursor_position.y--; break;
+    case 's': cursor_position.y++; break;
+    case 'a': cursor_position.x--; break;
+    case 'd': cursor_position.x++; break;
+    }
+
+    // 画面端を超えた場合、反対にワープする
+    cursor_position.x = (MAP_WIDTH + cursor_position.x) % MAP_WIDTH;
+    cursor_position.y = (MAP_HEIGHT + cursor_position.y) % MAP_HEIGHT;
+}
+
+/// <summary>
 /// アプリケーションウィンドウのメッセージハンドラ
 /// </summary>
 /// <param name="hWnd"></param>
@@ -294,6 +313,11 @@ LRESULT WINAPI MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                  DT_WORDBREAK);
 
         EndPaint(hWnd, &paintstruct);
+        break;
+
+    case WM_CHAR:
+        MoveCursor(wParam);
+        InvalidateRect(hWnd, NULL, TRUE);
         break;
 
     default:
