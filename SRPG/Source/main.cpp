@@ -202,6 +202,25 @@ int GetUnitIndex(MapPosition search_position) {
     return result;
 }
 
+// カーソル
+MapPosition cursor_position{0, 0};
+
+/// <summary>
+/// カーソル座標と一致するか確認
+/// </summary>
+/// <param name="x"></param>
+/// <param name="y"></param>
+/// <returns>true：一致、false：不一致</returns>
+bool IsMatchCursorPosition(int x, int y) {
+    if (cursor_position.x != x) {
+        return false;
+    }
+    if (cursor_position.y != y) {
+        return false;
+    }
+    return true;
+}
+
 /// <summary>
 /// アプリケーションウィンドウのメッセージハンドラ
 /// </summary>
@@ -215,6 +234,11 @@ LRESULT WINAPI MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     std::string draw_map;
     for (int y = 0; y < MAP_HEIGHT; y++) {
         for (int x = 0; x < MAP_WIDTH; x++) {
+            if (IsMatchCursorPosition(x, y)) {
+                draw_map += "◎";
+                continue;
+            }
+
             int index = GetUnitIndex(MapPosition{x, y});
             if (kUndefined < index) {
                 draw_map += job_list_[unit_list_[index].job].aa;
