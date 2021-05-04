@@ -116,6 +116,9 @@ char map_data_[] = "\
 000000000000000000000000000000";
 int cells[kMapHeight][kMapWidth];
 
+// 移動先塗りつぶし判定用
+bool fill[kMapHeight][kMapWidth];
+
 // 職業
 enum Job {
     kLoad,
@@ -350,6 +353,29 @@ std::string DisplayPhaseGuidance(Phase phase) {
 MapPosition cursor_position{0, 0};
 
 /// <summary>
+/// 移動可能範囲の塗りつぶし判定更新
+/// </summary>
+/// <param name="unit_index"></param>
+/// <param name="position"></param>
+/// <param name="remain_move"></param>
+void FillCanMoveCells(int unit_index, MapPosition position, int remain_move) {
+    if (position.x < 0 || kMapWidth <= position.x) {
+        return;
+    }
+
+    if (position.y < 0 || kMapHeight <= position.y) {
+        return;
+    }
+
+    int search_unit_index = GetUnitIndex(position);
+    if (kUndefined < search_unit_index && unit_list_[unit_index].team != unit_list_[search_unit_index].team) {
+        return;
+    }
+
+    fill[position.y][position.x] = true;
+}
+
+/// <summary>
 /// カーソル座標と一致するか確認
 /// </summary>
 /// <param name="x"></param>
@@ -377,6 +403,35 @@ void MoveCursor(WPARAM input_param) {
     case 's': cursor_position.y++; break;
     case 'a': cursor_position.x--; break;
     case 'd': cursor_position.x++; break;
+
+    // Enterキー押下時
+    case '\r':
+    {
+        switch (phase_) {
+        case Phase::kSelectUnit:
+        {
+            // カーソル位置にユニットが存在しない場合、スキップ
+            int index = GetUnitIndex(cursor_position);
+            if (index <= kUndefined) {
+                break;
+            }
+            // 塗りつぶし判定初期化
+            memset(fill, 0, sizeof(fill));
+            for (auto direct : directions) {
+                MapPosition position = MapPosition{ unit_list_[index].position.x + direct.x,
+                                                    unit_list_[index].position.y + direct.y };
+                FillCanMoveCells(index, position, unit_list_[index].move);
+            }
+            break;
+        }
+        case Phase::kSetMovePosition:
+            break;
+
+        case Phase::kSelectAttackUnit:
+            break;
+        }
+        break;
+    }
     }
 
     // 画面端を超えた場合、反対にワープする
@@ -399,6 +454,11 @@ LRESULT WINAPI MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         for (int x = 0; x < kMapWidth; x++) {
             if (IsMatchCursorPosition(x, y)) {
                 draw_map += "◎";
+                continue;
+            }
+
+            if (fill[y][x]) {
+                draw_map += "■";
                 continue;
             }
 
