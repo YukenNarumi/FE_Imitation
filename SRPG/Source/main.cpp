@@ -5,6 +5,8 @@
 #include <vector>
 #include <cstdio>
 #include <time.h>
+#include <sstream>
+#include <iomanip>
 
 namespace {
 // 単位時間あたりの移動量設定
@@ -202,6 +204,46 @@ int GetUnitIndex(MapPosition search_position) {
     return result;
 }
 
+/// <summary>
+/// 数値を0埋めした文字列に整形する
+/// </summary>
+/// <param name="digit"></param>
+/// <param name="value"></param>
+/// <returns></returns>
+std::string FormatFillDigitWithZero(const int digit, const int value) {
+    std::ostringstream wos;
+    wos << std::setw(digit) << std::setfill(_T('0')) << value;
+    return wos.str();
+}
+
+/// <summary>
+/// ユニットのパラメータ表示
+/// </summary>
+/// <param name="index"></param>
+/// <returns></returns>
+std::string DisplayUnitParameter(int index) {
+    if (index == kUndefined) {
+        return "";
+    }
+
+    std::string parameter;
+    parameter += unit_list_[index].name + "\n";
+    parameter += job_list_[unit_list_[index].job].name + "\n";
+
+    const int kDigit = 2;
+    parameter += "力　　　　：" + FormatFillDigitWithZero(kDigit, unit_list_[index].strength) + "\n";
+    parameter += "技　　　　：" + FormatFillDigitWithZero(kDigit, unit_list_[index].skill) + "\n";
+    parameter += "武器レベル：" + FormatFillDigitWithZero(kDigit, unit_list_[index].weapon_level) + "\n";
+    parameter += "素早さ　　：" + FormatFillDigitWithZero(kDigit, unit_list_[index].agility) + "\n";
+    parameter += "運　　　　：" + FormatFillDigitWithZero(kDigit, unit_list_[index].luck) + "\n";
+    parameter += "防御力　　：" + FormatFillDigitWithZero(kDigit, unit_list_[index].defence) + "\n";
+    parameter += "移動力　　：" + FormatFillDigitWithZero(kDigit, unit_list_[index].move) + "\n";
+
+    parameter += Weapon_list_[unit_list_[index].weapon].name + "\n";
+
+    return parameter;
+}
+
 // カーソル
 MapPosition cursor_position{0, 0};
 
@@ -268,6 +310,8 @@ LRESULT WINAPI MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         draw_map += "\n";
     }
 
+    draw_map += DisplayUnitParameter(GetUnitIndex(MapPosition{cursor_position.x, cursor_position.y}));
+
     HDC hdc;
     PAINTSTRUCT paintstruct;
     RECT rect;
@@ -293,19 +337,25 @@ LRESULT WINAPI MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
     case WM_LBUTTONDOWN:
         hdc = GetDC(hWnd);
-        //TextOut(hdc_, 10, 10, draw_map.c_str(), lstrlen(draw_map.c_str()));
         return 0;
 
         //----ペイント----
     case WM_PAINT:
         hdc = BeginPaint(hWnd, &paintstruct);
 
-        SetTextColor(hdc, RGB(0, 128, 255));
+        SetBkColor(hdc, RGB(0, 0, 0));
+        SetBkMode(hdc, OPAQUE);
+        SetTextColor(hdc, RGB(255, 255, 255));
+
+        // TODO:一先ず描画領域の上書きにより、文字削除
+        SelectObject(hdc, GetStockObject(BLACK_BRUSH));
+        Rectangle(hdc, 0, 0, kWindowWidth, kWindowHeight);
+
         rect.top = kWindowTop;
         rect.left = kWindowLeft;
         rect.right = kWindowWidth;
         rect.bottom = kWindowHeight;
-        //DrawText(hdc, "使用例 sample\nプリフィックス(&A)", -1, &rect, DT_WORDBREAK | DT_CENTER);
+
         DrawText(hdc,
                  draw_map.c_str(),
                  -1,
