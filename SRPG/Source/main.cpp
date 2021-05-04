@@ -217,6 +217,25 @@ std::string FormatFillDigitWithZero(const int digit, const int value) {
 }
 
 /// <summary>
+/// ユニットが装備している武器パラメータ表示
+/// </summary>
+/// <param name="weapon"></param>
+/// <returns></returns>
+std::string DisplayUnitWeaponParameter(Weapon weapon) {
+    WeaponDescription weapon_data = Weapon_list_[weapon];
+    std::string weapon_parameter;
+    weapon_parameter += weapon_data.name;
+    weapon_parameter += " (ダメージ:" + std::to_string(weapon_data.power);
+    weapon_parameter += " 重さ:" + std::to_string(weapon_data.weight);
+    weapon_parameter += " 命中率:" + std::to_string(weapon_data.hit);
+    weapon_parameter += " 必殺率:" + std::to_string(weapon_data.critical);
+    weapon_parameter += " 射程:" + std::to_string(weapon_data.range_min) + "～" + std::to_string(weapon_data.range_max);
+    weapon_parameter += ")\n";
+
+    return weapon_parameter;
+}
+
+/// <summary>
 /// ユニットのパラメータ表示
 /// </summary>
 /// <param name="index"></param>
@@ -239,7 +258,7 @@ std::string DisplayUnitParameter(int index) {
     parameter += "防御力　　：" + FormatFillDigitWithZero(kDigit, unit_list_[index].defence) + "\n";
     parameter += "移動力　　：" + FormatFillDigitWithZero(kDigit, unit_list_[index].move) + "\n";
 
-    parameter += Weapon_list_[unit_list_[index].weapon].name + "\n";
+    parameter += DisplayUnitWeaponParameter(unit_list_[index].weapon);
 
     return parameter;
 }
