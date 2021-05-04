@@ -217,7 +217,7 @@ std::string FormatFillDigitWithZero(const int digit, const int value) {
 }
 
 /// <summary>
-/// ユニットが装備している武器パラメータ表示
+/// ユニットが装備している武器情報表示
 /// </summary>
 /// <param name="weapon"></param>
 /// <returns></returns>
@@ -236,7 +236,7 @@ std::string DisplayUnitWeaponParameter(Weapon weapon) {
 }
 
 /// <summary>
-/// ユニットのパラメータ表示
+/// ユニット情報表示
 /// </summary>
 /// <param name="index"></param>
 /// <returns></returns>
@@ -259,6 +259,27 @@ std::string DisplayUnitParameter(int index) {
     parameter += "移動力　　：" + FormatFillDigitWithZero(kDigit, unit_list_[index].move) + "\n";
 
     parameter += DisplayUnitWeaponParameter(unit_list_[index].weapon);
+
+    return parameter;
+}
+
+/// <summary>
+/// 地形情報表示
+/// </summary>
+/// <param name="position"></param>
+/// <returns></returns>
+std::string DisplayCellParameter(MapPosition position) {
+    std::string parameter;
+    CellDescription cell = cell_list_[cells[position.y][position.x]];
+
+    parameter += cell.name + "\n";
+
+    const int kDigit = 2;
+    parameter += "防御効果:" + FormatFillDigitWithZero(kDigit, cell.defence) + "%\n";
+
+    parameter += "回復効果:";
+    parameter += (cell.heal ? "あり" : "なし");
+    parameter += "\n";
 
     return parameter;
 }
@@ -329,7 +350,12 @@ LRESULT WINAPI MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         draw_map += "\n";
     }
 
-    draw_map += DisplayUnitParameter(GetUnitIndex(MapPosition{cursor_position.x, cursor_position.y}));
+    int unit_index = GetUnitIndex(MapPosition{cursor_position.x, cursor_position.y});
+    if (kUndefined < unit_index) {
+        draw_map += DisplayUnitParameter(unit_index);
+    } else {
+        draw_map += DisplayCellParameter(cursor_position);
+    }
 
     HDC hdc;
     PAINTSTRUCT paintstruct;
