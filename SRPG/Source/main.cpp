@@ -37,6 +37,13 @@ struct MapPosition {
     int y;
 };
 
+// x,y方向の移動量
+struct MoveVector {
+    int x;
+    int y;
+};
+
+// ゲームのフェーズ
 enum Phase {
     kSelectUnit,
     kSetMovePosition,
@@ -45,6 +52,24 @@ enum Phase {
     kPhaseMax,
 };
 Phase phase_ = Phase::kSelectUnit;
+
+// 方角
+enum Direction {
+    kNorth,
+    kWest,
+    kSouth,
+    kEast,
+
+    kDirectionMax,
+};
+
+// 各方角の移動量
+const constexpr MoveVector directions[Direction::kDirectionMax] = {
+    {  0, 1 }, // kNorth
+    { -1, 0 }, // kWest
+    {  0, 1 }, // kSouth
+    {  1, 0 }, // kEast
+};
 
 enum Cell {
     kSea,
