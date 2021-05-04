@@ -26,6 +26,10 @@ const constexpr int kWindowTop = 50;
 const constexpr int kWindowLeft = 50;
 
 const constexpr int kUndefined = -1;
+
+// マップサイズ
+const constexpr int kMapWidth = 30;
+const constexpr int kMapHeight = 13;
 }
 
 struct MapPosition {
@@ -71,8 +75,6 @@ std::vector<CellDescription> cell_list_ = {
     { "城",      "城",    30, false},
 };
 
-const int MAP_WIDTH = 30;
-const int MAP_HEIGHT = 13;
 char map_data_[] = "\
 000000000000000000000000000000\
 0000kkk00000000000000000000000\
@@ -87,7 +89,7 @@ char map_data_[] = "\
 00111k116111112200021j11210000\
 000015500001100000000000220000\
 000000000000000000000000000000";
-int cells[MAP_HEIGHT][MAP_WIDTH];
+int cells[kMapHeight][kMapWidth];
 
 // 職業
 enum Job {
@@ -345,8 +347,8 @@ void MoveCursor(WPARAM input_param) {
     }
 
     // 画面端を超えた場合、反対にワープする
-    cursor_position.x = (MAP_WIDTH + cursor_position.x) % MAP_WIDTH;
-    cursor_position.y = (MAP_HEIGHT + cursor_position.y) % MAP_HEIGHT;
+    cursor_position.x = (kMapWidth + cursor_position.x) % kMapWidth;
+    cursor_position.y = (kMapHeight + cursor_position.y) % kMapHeight;
 }
 
 /// <summary>
@@ -360,8 +362,8 @@ void MoveCursor(WPARAM input_param) {
 LRESULT WINAPI MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
     std::string draw_map;
-    for (int y = 0; y < MAP_HEIGHT; y++) {
-        for (int x = 0; x < MAP_WIDTH; x++) {
+    for (int y = 0; y < kMapHeight; y++) {
+        for (int x = 0; x < kMapWidth; x++) {
             if (IsMatchCursorPosition(x, y)) {
                 draw_map += "◎";
                 continue;
@@ -493,9 +495,9 @@ INT WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, INT) {
 
     const int kFirstPirateIndex = 10;
     int pirate_count = 0;
-    for (int y = 0; y < MAP_HEIGHT; y++) {
-        for (int x = 0; x < MAP_WIDTH; x++) {
-            char c = map_data_[(y * MAP_WIDTH) + x];
+    for (int y = 0; y < kMapHeight; y++) {
+        for (int x = 0; x < kMapWidth; x++) {
+            char c = map_data_[(y * kMapWidth) + x];
             if (isdigit(c)) {
                 // 文字を数値に変換
                 cells[y][x] = c - '0';
