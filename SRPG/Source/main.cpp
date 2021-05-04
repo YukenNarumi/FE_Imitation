@@ -65,10 +65,10 @@ enum Direction {
 
 // Še•ûŠp‚ÌˆÚ“®—Ê
 const constexpr MoveVector directions[Direction::kDirectionMax] = {
-    {  0, 1 }, // kNorth
-    { -1, 0 }, // kWest
-    {  0, 1 }, // kSouth
-    {  1, 0 }, // kEast
+    {  0, -1 }, // kNorth
+    { -1,  0 }, // kWest
+    {  0,  1 }, // kSouth
+    {  1,  0 }, // kEast
 };
 
 enum Cell {
