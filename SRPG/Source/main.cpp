@@ -159,6 +159,13 @@ std::vector<WeaponDescription> Weapon_list_ = {
     { "鋼斧",    9, 9,  70,  0, 1, 1 },
 };
 
+enum Team {
+    kAlly,
+    kEnemy,
+
+    kTeamMax,
+};
+
 // ユニット
 struct UnitDescription {
     std::string name;
@@ -171,31 +178,32 @@ struct UnitDescription {
     int luck;
     int defence;
     int move;
+    Team team;
     Weapon weapon;
     MapPosition position;
 };
 std::vector<UnitDescription> unit_list_ = {
-    { "マルス",     Job::kLoad,    18, 5,  3,  5,  7, 7,  7,  7, Weapon::kRapier },
-    { "ジェイガン", Job::kParadin, 20, 7, 10, 10,  8, 1,  9, 10, Weapon::kIronSword },
-    { "カイン",     Job::kSKnight, 18, 7,  5,  5,  6, 3,  7,  9, Weapon::kSpear },
-    { "アベル",     Job::kSKnight, 18, 6,  7,  6,  7, 2,  7,  9, Weapon::kIronSword },
-    { "ドーガ",     Job::kAKnight, 16, 7,  3,  4,  3, 1, 11,  5, Weapon::kIronSword },
-    { "ゴードン",   Job::kArcher,  16, 5,  1,  5,  4, 4,  6,  5, Weapon::kCrossBow },
-    { "シーダ",     Job::kPKnight, 16, 3,  6,  7, 12, 9,  7,  8, Weapon::kIronSword },
-    { "ガザック",   Job::kPirate,  24, 7,  3,  7,  8, 0,  6,  6, Weapon::kStealAxe },
-    { "ガルダ兵",   Job::kHunter,  18, 6,  1,  5,  5, 0,  3,  6, Weapon::kBow },
-    { "ガルダ兵",   Job::kThief,   16, 3,  1,  2,  9, 0,  2,  7, Weapon::kIronSword },
-    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Weapon::kAxe },
-    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Weapon::kAxe },
-    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Weapon::kAxe },
-    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Weapon::kAxe },
-    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Weapon::kAxe },
-    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Weapon::kAxe },
-    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Weapon::kAxe },
-    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Weapon::kAxe },
-    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Weapon::kAxe },
-    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Weapon::kAxe },
-    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Weapon::kAxe },
+    { "マルス",     Job::kLoad,    18, 5,  3,  5,  7, 7,  7,  7, Team::kAlly,  Weapon::kRapier },
+    { "ジェイガン", Job::kParadin, 20, 7, 10, 10,  8, 1,  9, 10, Team::kAlly,  Weapon::kIronSword },
+    { "カイン",     Job::kSKnight, 18, 7,  5,  5,  6, 3,  7,  9, Team::kAlly,  Weapon::kSpear },
+    { "アベル",     Job::kSKnight, 18, 6,  7,  6,  7, 2,  7,  9, Team::kAlly,  Weapon::kIronSword },
+    { "ドーガ",     Job::kAKnight, 16, 7,  3,  4,  3, 1, 11,  5, Team::kAlly,  Weapon::kIronSword },
+    { "ゴードン",   Job::kArcher,  16, 5,  1,  5,  4, 4,  6,  5, Team::kAlly,  Weapon::kCrossBow },
+    { "シーダ",     Job::kPKnight, 16, 3,  6,  7, 12, 9,  7,  8, Team::kAlly,  Weapon::kIronSword },
+    { "ガザック",   Job::kPirate,  24, 7,  3,  7,  8, 0,  6,  6, Team::kEnemy, Weapon::kStealAxe },
+    { "ガルダ兵",   Job::kHunter,  18, 6,  1,  5,  5, 0,  3,  6, Team::kEnemy, Weapon::kBow },
+    { "ガルダ兵",   Job::kThief,   16, 3,  1,  2,  9, 0,  2,  7, Team::kEnemy, Weapon::kIronSword },
+    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Team::kEnemy, Weapon::kAxe },
+    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Team::kEnemy, Weapon::kAxe },
+    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Team::kEnemy, Weapon::kAxe },
+    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Team::kEnemy, Weapon::kAxe },
+    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Team::kEnemy, Weapon::kAxe },
+    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Team::kEnemy, Weapon::kAxe },
+    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Team::kEnemy, Weapon::kAxe },
+    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Team::kEnemy, Weapon::kAxe },
+    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Team::kEnemy, Weapon::kAxe },
+    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Team::kEnemy, Weapon::kAxe },
+    { "ガルダ兵",   Job::kPirate,  18, 5,  1,  5,  6, 0,  4,  6, Team::kEnemy, Weapon::kAxe },
 };
 
 /// <summary>
