@@ -33,6 +33,15 @@ struct MapPosition {
     int y;
 };
 
+enum Phase {
+    kSelectUnit,
+    kSetMovePosition,
+    kSelectAttackUnit,
+
+    kPhaseMax,
+};
+Phase phase_ = Phase::kSelectUnit;
+
 enum Cell {
     kSea,
     kPlane,
@@ -284,6 +293,24 @@ std::string DisplayCellParameter(MapPosition position) {
     return parameter;
 }
 
+/// <summary>
+/// フェーズガイダンス表示
+/// </summary>
+/// <param name="phase"></param>
+/// <returns></returns>
+std::string DisplayPhaseGuidance(Phase phase) {
+    std::string result;
+    switch (phase_) {
+    case kSelectUnit:       result = "ユニットを選択してください。";  break;
+    case kSetMovePosition:  result = "移動先を設定してください。";  break;
+    case kSelectAttackUnit: result = "攻撃対象を選んでください。";  break;
+    default:
+        break;
+    }
+    result += "\n\n";
+    return result;
+}
+
 // カーソル
 MapPosition cursor_position{0, 0};
 
@@ -349,6 +376,8 @@ LRESULT WINAPI MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         }
         draw_map += "\n";
     }
+
+    draw_map += DisplayPhaseGuidance(phase_);
 
     int unit_index = GetUnitIndex(MapPosition{cursor_position.x, cursor_position.y});
     if (kUndefined < unit_index) {
