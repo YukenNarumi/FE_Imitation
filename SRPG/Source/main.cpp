@@ -445,6 +445,16 @@ void MoveCursor(WPARAM input_param) {
                                                     unit_list_[index].position.y + direct.y};
                 FillCanMoveCells(index, position, unit_list_[index].move);
             }
+
+            int tmp_index;
+            for (int y = 0; y < kMapHeight; y++) {
+                for (int x = 0; x < kMapWidth; x++) {
+                    tmp_index = GetUnitIndex(MapPosition{x, y});
+                    if (kUndefined < tmp_index && fill[y][x]) {
+                        fill[y][x] = false;
+                    }
+                }
+            }
             break;
         }
         case Phase::kSetMovePosition:
