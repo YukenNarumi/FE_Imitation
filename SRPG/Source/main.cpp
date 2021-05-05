@@ -354,6 +354,9 @@ std::string DisplayPhaseGuidance(Phase phase) {
 // カーソル
 MapPosition cursor_position{0, 0};
 
+// 選択中ユニット
+int selected_unit = kUndefined;
+
 /// <summary>
 /// 移動可能範囲の塗りつぶし判定更新
 /// </summary>
@@ -425,6 +428,14 @@ void SetupFillCanMoveCells(MapPosition start_position) {
             }
         }
     }
+
+    // 味方ユニットを選択した場合、移動先選択フェーズに移行する
+    if (unit_list_[index].team == Team::kAlly) {
+        selected_unit = index;
+        phase_ = Phase::kSetMovePosition;
+    } else {
+        selected_unit = kUndefined;
+    }
 }
 
 /// <summary>
@@ -466,6 +477,11 @@ void MoveCursor(WPARAM input_param) {
             break;
         }
         case Phase::kSetMovePosition:
+            if (fill[cursor_position.y][cursor_position.x]) {
+                unit_list_[selected_unit].position = cursor_position;
+                memset(fill, 0, sizeof(fill));
+                phase_ = Phase::kSelectUnit;
+            }
             break;
 
         case Phase::kSelectAttackUnit:
