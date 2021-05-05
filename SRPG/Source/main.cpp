@@ -298,7 +298,13 @@ std::string DisplayUnitParameter(int index) {
     }
 
     std::string parameter;
-    parameter += unit_list_[index].name + "\n";
+    parameter += unit_list_[index].name;
+    if (unit_list_[index].team == Team::kAlly) {
+        parameter += "(";
+        parameter += (unit_list_[index].done ? "行動済" : "未行動");
+        parameter += ")";
+    }
+    parameter += "\n";
     parameter += job_list_[unit_list_[index].job].name + "\n";
 
     const int kDigit = 2;
@@ -346,7 +352,7 @@ std::string DisplayPhaseGuidance(Phase phase) {
     switch (phase_) {
     case kSelectUnit:       result = "ユニットを選択してください。";  break;
     case kSetMovePosition:  result = "移動先を設定してください。";  break;
-    case kSelectAttackUnit: result = "攻撃対象を選んでください。";  break;
+    case kSelectAttackUnit: result = "攻撃対象を選んでください。(自身を選択で待機)";  break;
     default:
         break;
     }
@@ -526,12 +532,26 @@ void MoveCursor(WPARAM input_param) {
             if (fill[cursor_position.y][cursor_position.x]) {
                 unit_list_[selected_unit].position = cursor_position;
                 memset(fill, 0, sizeof(fill));
-                phase_ = Phase::kSelectUnit;
+                
+                if (kUndefined < GetCanAttackUnit(selected_unit)) {
+                    phase_ = Phase::kSelectAttackUnit;
+                } else {
+                    unit_list_[selected_unit].done = true;
+                    phase_ = Phase::kSelectUnit;
+                }
             }
             break;
 
         case Phase::kSelectAttackUnit:
+        {
+            if (    cursor_position.x == unit_list_[selected_unit].position.x
+                &&  cursor_position.y == unit_list_[selected_unit].position.y) {
+                unit_list_[selected_unit].done = true;
+                phase_ = Phase::kSelectUnit;
+                break;
+            }
             break;
+        }
         }
         break;
     }
