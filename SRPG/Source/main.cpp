@@ -470,6 +470,21 @@ bool CanAttack(int attack, int defence) {
 }
 
 /// <summary>
+/// 攻撃可能なユニットを取得する。
+/// </summary>
+/// <param name="target_index"></param>
+/// <returns></returns>
+int GetCanAttackUnit(int target_index) {
+    int size = unit_list_.size();
+    for (int i = 0; i < size; i++) {
+        if (CanAttack(target_index, i)) {
+            return i;
+        }
+    }
+    return kUndefined;
+}
+
+/// <summary>
 /// カーソル座標と一致するか確認
 /// </summary>
 /// <param name="x"></param>
