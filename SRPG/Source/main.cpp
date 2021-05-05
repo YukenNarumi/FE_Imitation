@@ -211,6 +211,9 @@ struct UnitDescription {
     Team team;
     Weapon weapon;
     MapPosition position;
+
+    // çsìÆçœÇ›îªíË
+    bool done;
 };
 std::vector<UnitDescription> unit_list_ = {
     { "É}ÉãÉX",     Job::kLoad,    18, 5,  3,  5,  7, 7,  7,  7, Team::kAlly,  Weapon::kRapier },
@@ -663,6 +666,7 @@ INT WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, INT) {
                     index = (c - 'a');
                 }
                 unit_list_[index].position = MapPosition{x, y};
+                unit_list_[index].done = false;
                 cells[y][x] = Cell::kPlane;
             }
         }
