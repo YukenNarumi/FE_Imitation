@@ -442,6 +442,16 @@ void SetupFillCanMoveCells(MapPosition start_position) {
 }
 
 /// <summary>
+/// ユニット間の距離を計算する。
+/// </summary>
+/// <param name="unit0_index"></param>
+/// <param name="unit1_index"></param>
+/// <returns></returns>
+int CalculateUnitsDistance(UnitDescription unit0, UnitDescription unit1) {
+    return (std::abs(unit0.position.x - unit1.position.x) + std::abs(unit0.position.y - unit1.position.y));
+}
+
+/// <summary>
 /// カーソル座標と一致するか確認
 /// </summary>
 /// <param name="x"></param>
