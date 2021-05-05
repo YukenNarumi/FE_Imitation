@@ -452,6 +452,24 @@ int CalculateUnitsDistance(UnitDescription unit0, UnitDescription unit1) {
 }
 
 /// <summary>
+/// 対象ユニットに攻撃可能か判定する。
+/// </summary>
+/// <param name="attack"></param>
+/// <param name="defence"></param>
+/// <returns></returns>
+bool CanAttack(int attack, int defence) {
+    UnitDescription attack_unit = unit_list_[attack];
+    UnitDescription defence_unit = unit_list_[defence];
+
+    // 同じチームは範囲外扱い
+    if (attack_unit.team == defence_unit.team) {
+        return false;
+    }
+
+    return (CalculateUnitsDistance(attack_unit, defence_unit) <= Weapon_list_[attack_unit.weapon].range_max);
+}
+
+/// <summary>
 /// カーソル座標と一致するか確認
 /// </summary>
 /// <param name="x"></param>
