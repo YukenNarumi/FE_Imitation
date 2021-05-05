@@ -358,23 +358,44 @@ MapPosition cursor_position{0, 0};
 /// 移動可能範囲の塗りつぶし判定更新
 /// </summary>
 /// <param name="unit_index"></param>
-/// <param name="position"></param>
+/// <param name="search_position"></param>
 /// <param name="remain_move"></param>
-void FillCanMoveCells(int unit_index, MapPosition position, int remain_move) {
-    if (position.x < 0 || kMapWidth <= position.x) {
+void FillCanMoveCells(int unit_index, MapPosition search_position, int remain_move) {
+    if (search_position.x < 0 || kMapWidth <= search_position.x) {
         return;
     }
 
-    if (position.y < 0 || kMapHeight <= position.y) {
+    if (search_position.y < 0 || kMapHeight <= search_position.y) {
         return;
     }
 
-    int search_unit_index = GetUnitIndex(position);
+    int search_unit_index = GetUnitIndex(search_position);
     if (kUndefined < search_unit_index && unit_list_[unit_index].team != unit_list_[search_unit_index].team) {
         return;
     }
 
-    fill[position.y][position.x] = true;
+    int move_cost = job_list_[unit_list_[unit_index].job].consts[cells[search_position.y][search_position.x]];
+
+    // 移動不可の地形の場合、スキップする
+    if (move_cost <= kUndefined) {
+        return;
+    }
+
+    if (remain_move < move_cost) {
+        return;
+    }
+
+    fill[search_position.y][search_position.x] = true;
+    remain_move -= move_cost;
+
+    if (remain_move <= 0) {
+        return;
+    }
+
+    for (auto direct : directions) {
+        MapPosition position = MapPosition{search_position.x + direct.x, search_position.y + direct.y};
+        FillCanMoveCells(unit_index, position, remain_move);
+    }
 }
 
 /// <summary>
@@ -406,7 +427,7 @@ void MoveCursor(WPARAM input_param) {
     case 'a': cursor_position.x--; break;
     case 'd': cursor_position.x++; break;
 
-    // Enterキー押下時
+        // Enterキー押下時
     case '\r':
     {
         switch (phase_) {
@@ -420,8 +441,8 @@ void MoveCursor(WPARAM input_param) {
             // 塗りつぶし判定初期化
             memset(fill, 0, sizeof(fill));
             for (auto direct : directions) {
-                MapPosition position = MapPosition{ unit_list_[index].position.x + direct.x,
-                                                    unit_list_[index].position.y + direct.y };
+                MapPosition position = MapPosition{unit_list_[index].position.x + direct.x,
+                                                    unit_list_[index].position.y + direct.y};
                 FillCanMoveCells(index, position, unit_list_[index].move);
             }
             break;
