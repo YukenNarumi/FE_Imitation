@@ -399,6 +399,35 @@ void FillCanMoveCells(int unit_index, MapPosition search_position, int remain_mo
 }
 
 /// <summary>
+/// 移動可能範囲の塗りつぶし判定のセットアップ
+/// </summary>
+void SetupFillCanMoveCells(MapPosition start_position) {
+    // カーソル位置にユニットが存在しない場合、スキップ
+    int index = GetUnitIndex(start_position);
+    if (index <= kUndefined) {
+        return;
+    }
+
+    // 塗りつぶし判定初期化
+    memset(fill, 0, sizeof(fill));
+    for (auto direct : directions) {
+        MapPosition position = MapPosition{unit_list_[index].position.x + direct.x,
+                                            unit_list_[index].position.y + direct.y};
+        FillCanMoveCells(index, position, unit_list_[index].move);
+    }
+
+    int tmp_index;
+    for (int y = 0; y < kMapHeight; y++) {
+        for (int x = 0; x < kMapWidth; x++) {
+            tmp_index = GetUnitIndex(MapPosition{x, y});
+            if (kUndefined < tmp_index && fill[y][x]) {
+                fill[y][x] = false;
+            }
+        }
+    }
+}
+
+/// <summary>
 /// カーソル座標と一致するか確認
 /// </summary>
 /// <param name="x"></param>
@@ -433,28 +462,7 @@ void MoveCursor(WPARAM input_param) {
         switch (phase_) {
         case Phase::kSelectUnit:
         {
-            // カーソル位置にユニットが存在しない場合、スキップ
-            int index = GetUnitIndex(cursor_position);
-            if (index <= kUndefined) {
-                break;
-            }
-            // 塗りつぶし判定初期化
-            memset(fill, 0, sizeof(fill));
-            for (auto direct : directions) {
-                MapPosition position = MapPosition{unit_list_[index].position.x + direct.x,
-                                                    unit_list_[index].position.y + direct.y};
-                FillCanMoveCells(index, position, unit_list_[index].move);
-            }
-
-            int tmp_index;
-            for (int y = 0; y < kMapHeight; y++) {
-                for (int x = 0; x < kMapWidth; x++) {
-                    tmp_index = GetUnitIndex(MapPosition{x, y});
-                    if (kUndefined < tmp_index && fill[y][x]) {
-                        fill[y][x] = false;
-                    }
-                }
-            }
+            SetupFillCanMoveCells(cursor_position);
             break;
         }
         case Phase::kSetMovePosition:
