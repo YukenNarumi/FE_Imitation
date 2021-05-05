@@ -78,6 +78,8 @@ enum Cell {
     kMountain,
     kRock,
     kTown,
+    kFort,
+    kCastle,
 
     kCellMax
 };
