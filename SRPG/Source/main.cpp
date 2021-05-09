@@ -211,6 +211,7 @@ struct UnitDescription {
     Team team;
     Weapon weapon;
     MapPosition position;
+    int hp;
 
     // 行動済み判定
     bool done;
@@ -308,6 +309,8 @@ std::string DisplayUnitParameter(int index) {
     parameter += job_list_[unit_list_[index].job].name + "\n";
 
     const int kDigit = 2;
+    parameter += "HP　　　　：" + FormatFillDigitWithZero(kDigit, unit_list_[index].hp) + "/";
+    parameter += FormatFillDigitWithZero(kDigit, unit_list_[index].max_hp) + "\n";
     parameter += "力　　　　：" + FormatFillDigitWithZero(kDigit, unit_list_[index].strength) + "\n";
     parameter += "技　　　　：" + FormatFillDigitWithZero(kDigit, unit_list_[index].skill) + "\n";
     parameter += "武器レベル：" + FormatFillDigitWithZero(kDigit, unit_list_[index].weapon_level) + "\n";
@@ -911,6 +914,7 @@ INT WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, INT) {
                     index = (c - 'a');
                 }
                 unit_list_[index].position = MapPosition{x, y};
+                unit_list_[index].hp = unit_list_[index].max_hp;
                 unit_list_[index].done = false;
                 cells[y][x] = Cell::kPlane;
             }
