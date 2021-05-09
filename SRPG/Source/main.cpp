@@ -464,6 +464,10 @@ int CalculateUnitsDistance(UnitDescription unit0, UnitDescription unit1) {
 /// <param name="defence"></param>
 /// <returns></returns>
 bool CanAttack(int attack, int defence) {
+    if (attack <= kUndefined || defence <= kUndefined) {
+        return false;
+    }
+
     UnitDescription attack_unit = unit_list_[attack];
     UnitDescription defence_unit = unit_list_[defence];
 
