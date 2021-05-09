@@ -495,6 +495,99 @@ int GetCanAttackUnit(int target_index) {
 }
 
 /// <summary>
+/// 戦闘クラス
+/// </summary>
+class BattleController {
+public:
+    // 攻撃種類
+    enum AttackType {
+        kNomal,
+        kCounter,
+        kSecond,
+
+        kAttackMax,
+    };
+
+    BattleController() {
+        type_ = AttackType::kAttackMax;
+        attack_ = nullptr;
+        defence_ = nullptr;
+    }
+
+    ~BattleController() {
+        attack_ = nullptr;
+        defence_ = nullptr;
+    }
+
+    void Setup(UnitDescription* attack, UnitDescription* defence) {
+        type_ = AttackType::kNomal;
+        attack_ = attack;
+        defence_ = defence;
+    }
+
+    bool IsAttacking() {
+        return (type_ != AttackType::kAttackMax);
+    }
+
+    /// <summary>
+    /// 外部公開用メッセージ
+    /// </summary>
+    /// <returns></returns>
+    std::string Message() {
+        if (!IsAttacking()) {
+            return "";
+        }
+
+        // TODO: メッセージ：%sの
+        std::string message = "";
+
+        switch (type_) {
+        case kNomal:
+            message = attack_->name + "の攻撃!";
+            break;
+        case kCounter:
+            message = defence_->name + "の反撃!";
+            break;
+        case kSecond:
+            message = attack_->name + "の再攻撃!";
+            break;
+        case kAttackMax:
+            break;
+        default:
+            break;
+        }
+
+        return message;
+    }
+
+    /// <summary>
+    /// 次のステートに進める
+    /// </summary>
+    void ProceedToTheNextState() {
+        switch (type_) {
+        case kNomal:
+            type_ = AttackType::kCounter;
+            break;
+        case kCounter:
+            type_ = AttackType::kSecond;
+            break;
+        case kSecond:
+            type_ = AttackType::kAttackMax;
+            break;
+        case kAttackMax:
+        default:
+            break;
+        }
+    }
+
+private:
+    AttackType type_;
+    UnitDescription* attack_;
+    UnitDescription* defence_;
+};
+BattleController* battle_controller_;
+
+/// <summary>
 /// カーソル座標と一致するか確認
 /// </summary>
 /// <param name="x"></param>
@@ -761,6 +854,9 @@ INT WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, INT) {
 
     AtlTrace("kPirate = %d", pirate_count);
 
+    // クラス生成
+    battle_controller_ = new BattleController();
+
     //アプリケーションウィンドウの生成
     HWND hWnd = CreateWindow(kWindowTitle,
                              kWindowTitle,
@@ -800,6 +896,9 @@ INT WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, INT) {
             DispatchMessage(&msg);
         }
     }
+
+    // クラス後始末
+    delete(battle_controller_);
 
     return (0);
 }
