@@ -512,6 +512,7 @@ public:
         type_ = AttackType::kAttackMax;
         attack_ = nullptr;
         defence_ = nullptr;
+        second_attack_ = SecondAttack::kNothing;
     }
 
     ~BattleController() {
@@ -549,7 +550,11 @@ public:
             message = defence_->name + "‚Ì”½Œ‚!";
             break;
         case kSecond:
-            message = attack_->name + "‚ÌÄUŒ‚!";
+            if (second_attack_ == SecondAttack::kAttack) {
+                message = attack_->name + "‚ÌÄUŒ‚!";
+            } else if (second_attack_ == SecondAttack::kDefence) {
+                message = defence_->name + "‚ÌÄUŒ‚!";
+            }
             break;
         case kAttackMax:
             break;
@@ -569,9 +574,15 @@ public:
             type_ = AttackType::kCounter;
             break;
         case kCounter:
-            type_ = AttackType::kSecond;
+            second_attack_ = JudgeSecondAttack();
+            if (second_attack_ == SecondAttack::kNothing) {
+                type_ = AttackType::kAttackMax;
+            } else {
+                type_ = AttackType::kSecond;
+            }
             break;
         case kSecond:
+            second_attack_ = SecondAttack::kNothing;
             type_ = AttackType::kAttackMax;
             break;
         case kAttackMax:
@@ -581,6 +592,36 @@ public:
     }
 
 private:
+    // ÄUŒ‚‚·‚é‘¤
+    enum SecondAttack {
+        kNothing,
+        kAttack,
+        kDefence,
+
+        kSecondAttackMax,
+    };
+
+    /// <summary>
+    /// ÄUŒ‚”»’è‚ğZo‚·‚éB
+    /// </summary>
+    /// <returns></returns>
+    SecondAttack JudgeSecondAttack() {
+        int attack_speed = attack_->agility - Weapon_list_[attack_->weapon].weight;
+        int defence_speed = defence_->agility - Weapon_list_[defence_->weapon].weight;
+
+        if (defence_speed < attack_speed) {
+            return SecondAttack::kAttack;
+        }
+
+        if (attack_speed < defence_speed) {
+            return SecondAttack::kDefence;
+        }
+
+        return SecondAttack::kNothing;
+    }
+
+    SecondAttack second_attack_;
+
     AttackType type_;
     UnitDescription* attack_;
     UnitDescription* defence_;
