@@ -542,6 +542,25 @@ std::string DisplayMap() {
 }
 
 /// <summary>
+/// 描画関連集約処理
+/// </summary>
+/// <returns></returns>
+std::string Draw() {
+    std::string message = DisplayMap();
+
+    message += DisplayPhaseGuidance(phase_);
+
+    int unit_index = GetUnitIndex(MapPosition{cursor_position.x, cursor_position.y});
+    if (kUndefined < unit_index) {
+        message += DisplayUnitParameter(unit_index);
+    } else {
+        message += DisplayCellParameter(cursor_position);
+    }
+
+    return message;
+}
+
+/// <summary>
 /// カーソル移動処理
 /// </summary>
 /// <param name="input_param"></param>
@@ -607,16 +626,7 @@ void MoveCursor(WPARAM input_param) {
 /// <returns></returns>
 LRESULT WINAPI MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
-    std::string draw_map = DisplayMap();
-
-    draw_map += DisplayPhaseGuidance(phase_);
-
-    int unit_index = GetUnitIndex(MapPosition{cursor_position.x, cursor_position.y});
-    if (kUndefined < unit_index) {
-        draw_map += DisplayUnitParameter(unit_index);
-    } else {
-        draw_map += DisplayCellParameter(cursor_position);
-    }
+    std::string draw_map = Draw();
 
     HDC hdc;
     PAINTSTRUCT paintstruct;
