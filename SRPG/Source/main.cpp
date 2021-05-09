@@ -641,6 +641,11 @@ std::string DisplayMap() {
 std::string Draw() {
     std::string message = DisplayMap();
 
+    if (battle_controller_->IsAttacking()) {
+        message += battle_controller_->Message();
+        return message;
+    }
+
     message += DisplayPhaseGuidance(phase_);
 
     int unit_index = GetUnitIndex(MapPosition{cursor_position.x, cursor_position.y});
@@ -659,6 +664,18 @@ std::string Draw() {
 /// <param name="input_param"></param>
 void MoveCursor(WPARAM input_param) {
     AtlTrace("KeyUp = %Xh\n", input_param);
+
+    // 攻撃中はカーソル移動等を行わない
+    if (battle_controller_->IsAttacking()) {
+        switch (input_param) {
+        // Enterキー押下時
+        case '\r':
+        {
+            battle_controller_->ProceedToTheNextState();
+        }
+        }
+        return;
+    }
 
     switch (input_param) {
     case 'w': cursor_position.y--; break;
@@ -696,6 +713,13 @@ void MoveCursor(WPARAM input_param) {
                 unit_list_[selected_unit].done = true;
                 phase_ = Phase::kSelectUnit;
                 break;
+            }
+
+            int index = GetUnitIndex(cursor_position);
+            if (CanAttack(selected_unit, index)) {
+                battle_controller_->Setup(&unit_list_[selected_unit], &unit_list_[index]);
+                unit_list_[selected_unit].done = true;
+                phase_ = Phase::kSelectUnit;
             }
             break;
         }
