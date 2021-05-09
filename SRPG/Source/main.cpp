@@ -507,6 +507,37 @@ bool IsMatchCursorPosition(int x, int y) {
 }
 
 /// <summary>
+/// /マップ表示
+/// </summary>
+/// <returns></returns>
+std::string DisplayMap() {
+    std::string draw_map;
+    for (int y = 0; y < kMapHeight; y++) {
+        for (int x = 0; x < kMapWidth; x++) {
+            if (IsMatchCursorPosition(x, y)) {
+                draw_map += "◎";
+                continue;
+            }
+
+            if (fill[y][x]) {
+                draw_map += "■";
+                continue;
+            }
+
+            int index = GetUnitIndex(MapPosition{x, y});
+            if (kUndefined < index) {
+                draw_map += job_list_[unit_list_[index].job].aa;
+            } else {
+                draw_map += cell_list_[cells[y][x]].aa;
+            }
+        }
+        draw_map += "\n";
+    }
+
+    return draw_map;
+}
+
+/// <summary>
 /// カーソル移動処理
 /// </summary>
 /// <param name="input_param"></param>
@@ -532,7 +563,7 @@ void MoveCursor(WPARAM input_param) {
             if (fill[cursor_position.y][cursor_position.x]) {
                 unit_list_[selected_unit].position = cursor_position;
                 memset(fill, 0, sizeof(fill));
-                
+
                 if (kUndefined < GetCanAttackUnit(selected_unit)) {
                     phase_ = Phase::kSelectAttackUnit;
                 } else {
@@ -572,28 +603,7 @@ void MoveCursor(WPARAM input_param) {
 /// <returns></returns>
 LRESULT WINAPI MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
-    std::string draw_map;
-    for (int y = 0; y < kMapHeight; y++) {
-        for (int x = 0; x < kMapWidth; x++) {
-            if (IsMatchCursorPosition(x, y)) {
-                draw_map += "◎";
-                continue;
-            }
-
-            if (fill[y][x]) {
-                draw_map += "■";
-                continue;
-            }
-
-            int index = GetUnitIndex(MapPosition{x, y});
-            if (kUndefined < index) {
-                draw_map += job_list_[unit_list_[index].job].aa;
-            } else {
-                draw_map += cell_list_[cells[y][x]].aa;
-            }
-        }
-        draw_map += "\n";
-    }
+    std::string draw_map = DisplayMap();
 
     draw_map += DisplayPhaseGuidance(phase_);
 
