@@ -643,6 +643,24 @@ private:
     }
 
     /// <summary>
+    /// ダメージ計算
+    /// </summary>
+    /// <param name="attack"></param>
+    /// <param name="defence"></param>
+    /// <returns></returns>
+    int CalculateDamage(UnitDescription* attack, UnitDescription* defence, bool critical) {
+        int damage = attack->strength + Weapon_list_[attack->weapon].power;
+
+        damage -= defence->defence;
+
+        if (critical) {
+            damage *= kCriticalCorrection;
+        }
+
+        return max(damage, 0);
+    }
+
+    /// <summary>
     /// 再攻撃判定を算出する。
     /// </summary>
     /// <returns></returns>
