@@ -509,8 +509,12 @@ public:
     // 攻撃種類
     enum AttackType {
         kNomal,
+        kNomalResult,
         kCounter,
+        kCounterResult,
         kSecond,
+        kSecondResult,
+        kKnockdown,
 
         kAttackMax,
     };
@@ -520,17 +524,22 @@ public:
         attack_ = nullptr;
         defence_ = nullptr;
         second_attack_ = SecondAttack::kNothing;
+        message_list_ = std::vector<std::string>();
+        message_update_ = false;
     }
 
     ~BattleController() {
         attack_ = nullptr;
         defence_ = nullptr;
+        message_list_.clear();
     }
 
     void Setup(UnitDescription* attack, UnitDescription* defence) {
         type_ = AttackType::kNomal;
         attack_ = attack;
         defence_ = defence;
+        message_update_ = false;
+        Update();
     }
 
     bool IsAttacking() {
@@ -546,27 +555,13 @@ public:
             return "";
         }
 
-        // TODO: メッセージ：%sの
         std::string message = "";
-
-        switch (type_) {
-        case kNomal:
-            message = attack_->name + "の攻撃!";
-            break;
-        case kCounter:
-            message = defence_->name + "の反撃!";
-            break;
-        case kSecond:
-            if (second_attack_ == SecondAttack::kAttack) {
-                message = attack_->name + "の再攻撃!";
-            } else if (second_attack_ == SecondAttack::kDefence) {
-                message = defence_->name + "の再攻撃!";
+        int size = message_list_.size();
+        for (int i = 0; i < size; i++) {
+            if (0 < i) {
+                message += "\n";
             }
-            break;
-        case kAttackMax:
-            break;
-        default:
-            break;
+            message += message_list_[i];
         }
 
         return message;
@@ -578,9 +573,31 @@ public:
     void ProceedToTheNextState() {
         switch (type_) {
         case kNomal:
-            type_ = AttackType::kCounter;
+            message_update_ = false;
+            type_ = AttackType::kNomalResult;
             break;
+
+        case kNomalResult:
+            message_update_ = false;
+            if (0 < defence_->hp) {
+                type_ = AttackType::kCounter;
+            } else {
+                type_ = AttackType::kKnockdown;
+            }
+            break;
+
         case kCounter:
+            message_update_ = false;
+            type_ = AttackType::kCounterResult;
+            break;
+
+        case kCounterResult:
+            message_update_ = false;
+            if (attack_->hp <= 0) {
+                type_ = AttackType::kKnockdown;
+                break;
+            }
+
             second_attack_ = JudgeSecondAttack();
             if (second_attack_ == SecondAttack::kNothing) {
                 type_ = AttackType::kAttackMax;
@@ -588,14 +605,25 @@ public:
                 type_ = AttackType::kSecond;
             }
             break;
+
         case kSecond:
+            message_update_ = false;
+            type_ = AttackType::kSecondResult;
+            break;
+
+        case kSecondResult:
+        case kKnockdown:
+            message_update_ = false;
             second_attack_ = SecondAttack::kNothing;
             type_ = AttackType::kAttackMax;
             break;
+
         case kAttackMax:
         default:
             break;
         }
+
+        Update();
     }
 
 private:
@@ -679,6 +707,93 @@ private:
         return SecondAttack::kNothing;
     }
 
+    /// <summary>
+    /// ダメージ計算やそれに伴うメッセージの更新を行う
+    /// </summary>
+    void Update() {
+        if (message_update_) {
+            return;
+        }
+
+        message_list_.clear();
+        switch (type_) {
+        case kNomal:
+            message_list_.push_back(attack_->name + "の攻撃!");
+            break;
+
+        case kNomalResult:
+            message_list_.push_back(attack_->name + "の攻撃!");
+            UpdateDamageResult(attack_, defence_);
+            break;
+
+        case kCounter:
+            message_list_.push_back(defence_->name + "の反撃!");
+            break;
+
+        case kCounterResult:
+            message_list_.push_back(defence_->name + "の反撃!");
+            UpdateDamageResult(defence_, attack_);
+            break;
+
+        case kSecond:
+            if (second_attack_ == SecondAttack::kNothing) {
+                message_list_.push_back(attack_->name + "の再攻撃!");
+            } else {
+                message_list_.push_back(defence_->name + "の再攻撃!");
+            }
+            break;
+
+        case kSecondResult:
+            if (second_attack_ == SecondAttack::kNothing) {
+                message_list_.push_back(attack_->name + "の再攻撃!");
+                UpdateDamageResult(attack_, defence_);
+            } else {
+                message_list_.push_back(defence_->name + "の再攻撃!");
+                UpdateDamageResult(defence_, attack_);
+            }
+            break;
+
+        case kKnockdown:
+            if (attack_->hp <= 0) {
+                message_list_.push_back(attack_->name + "が倒された…");
+            } else {
+                message_list_.push_back(defence_->name + "を倒した!");
+            }
+            break;
+
+        case kAttackMax:
+        default:
+            break;
+        }
+
+        message_update_ = true;
+    }
+
+    /// <summary>
+    /// ダメージ計算結果に関わるメッセージを更新する。
+    /// </summary>
+    /// <param name="attack_unit"></param>
+    /// <param name="defence_unit"></param>
+    void UpdateDamageResult(UnitDescription* attack_unit, UnitDescription* defence_unit) {
+        // クリティカルは必中
+        bool critical = IsCritical(attack_unit);
+        if (critical) {
+            message_list_.push_back("必殺の一撃!");
+        } else if (!IsHit(attack_unit, defence_unit)) {
+            message_list_.push_back(defence_unit->name + "は素早く身をかわした!");
+            return;
+        }
+
+        const int kNodamage = 0;
+        int damage = CalculateDamage(attack_unit, defence_unit, critical);
+        if (damage <= kNodamage) {
+            message_list_.push_back("ダメージを与えられない!");
+        } else {
+            message_list_.push_back(defence_unit->name + "に" + std::to_string(damage) + "のダメージ!");
+            defence_unit->hp -= damage;
+        }
+    }
+
     // クリティカル発生時のダメージ補正(n倍)
     const int kCriticalCorrection = 3;
 
@@ -687,6 +802,9 @@ private:
     AttackType type_;
     UnitDescription* attack_;
     UnitDescription* defence_;
+
+    std::vector<std::string> message_list_;
+    bool message_update_;
 };
 BattleController* battle_controller_;
 
