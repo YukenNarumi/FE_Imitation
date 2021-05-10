@@ -623,6 +623,26 @@ private:
     }
 
     /// <summary>
+    /// 攻撃が命中したか確認する。
+    /// </summary>
+    /// <param name="attack"></param>
+    /// <param name="defence"></param>
+    /// <returns></returns>
+    bool IsHit(UnitDescription* attack, UnitDescription* defence) {
+        int hit = attack->skill + Weapon_list_[attack->weapon].hit;
+        int parry = defence->agility - Weapon_list_[defence->weapon].weight;
+        parry += cell_list_[cells[defence->position.y][defence->position.x]].defence;
+
+        hit -= parry;
+
+        std::uniform_int_distribution<> dist(0, 100);
+        int random = dist(randomizer_);
+
+        // 最終命中率より乱数が小さい場合、命中
+        return (random < hit);
+    }
+
+    /// <summary>
     /// 再攻撃判定を算出する。
     /// </summary>
     /// <returns></returns>
