@@ -7,6 +7,7 @@
 #include <time.h>
 #include <sstream>
 #include <iomanip>
+#include <random>
 
 namespace {
 // 単位時間あたりの移動量設定
@@ -31,6 +32,9 @@ const constexpr int kUndefined = -1;
 const constexpr int kMapWidth = 30;
 const constexpr int kMapHeight = 13;
 }
+
+// 乱数生成器
+std::mt19937 randomizer_;
 
 struct MapPosition {
     int x;
@@ -605,6 +609,20 @@ private:
     };
 
     /// <summary>
+    /// クリティカルが発生するか確認する。
+    /// </summary>
+    /// <param name="attack"></param>
+    /// <returns></returns>
+    bool IsCritical(UnitDescription* attack) {
+        int critical = (attack->skill + attack->luck) / 2 + Weapon_list_[attack->weapon].critical;
+
+        std::uniform_int_distribution<> dist(0, 100);
+        int random = dist(randomizer_);
+
+        return (random < critical);
+    }
+
+    /// <summary>
     /// 再攻撃判定を算出する。
     /// </summary>
     /// <returns></returns>
@@ -622,6 +640,9 @@ private:
 
         return SecondAttack::kNothing;
     }
+
+    // クリティカル発生時のダメージ補正(n倍)
+    const int kCriticalCorrection = 3;
 
     SecondAttack second_attack_;
 
@@ -889,6 +910,11 @@ INT WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, INT) {
     if (!RegisterClassEx(&wc)) {
         return(FALSE);
     }
+
+    // メルセンヌ・ツイスター法による擬似乱数生成器を、
+    // ハードウェア乱数をシードにして初期化
+    std::random_device seed_gen;
+    randomizer_ = std::mt19937(seed_gen());
 
     // 最大化ボタンを持たない・境界変更のできないwindow
     DWORD window_style = ~(WS_MAXIMIZEBOX | WS_THICKFRAME);
