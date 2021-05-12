@@ -736,7 +736,7 @@ private:
             break;
 
         case kSecond:
-            if (second_attack_ == SecondAttack::kNothing) {
+            if (second_attack_ == SecondAttack::kAttack) {
                 message_list_.push_back(attack_->name + "‚ÌÄUŒ‚!");
             } else {
                 message_list_.push_back(defence_->name + "‚ÌÄUŒ‚!");
@@ -744,7 +744,7 @@ private:
             break;
 
         case kSecondResult:
-            if (second_attack_ == SecondAttack::kNothing) {
+            if (second_attack_ == SecondAttack::kAttack) {
                 message_list_.push_back(attack_->name + "‚ÌÄUŒ‚!");
                 UpdateDamageResult(attack_, defence_);
             } else {
