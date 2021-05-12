@@ -765,8 +765,10 @@ private:
         case kKnockdown:
             if (attack_->hp <= 0) {
                 message_list_.push_back(attack_->name + "が倒された…");
+                UnitDeath(attack_);
             } else {
                 message_list_.push_back(defence_->name + "を倒した!");
+                UnitDeath(defence_);
             }
             break;
 
@@ -801,6 +803,15 @@ private:
             message_list_.push_back(defence_unit->name + "に" + std::to_string(damage) + "のダメージ!");
             defence_unit->hp -= damage;
         }
+    }
+
+    /// <summary>
+    /// ユニット死亡処理
+    /// </summary>
+    /// <param name="unit"></param>
+    void UnitDeath(UnitDescription* unit) {
+        unit->position.x = -1;
+        unit->position.y = -1;
     }
 
     // クリティカル発生時のダメージ補正(n倍)
@@ -898,7 +909,7 @@ void MoveCursor(WPARAM input_param) {
     // 攻撃中はカーソル移動等を行わない
     if (battle_controller_->IsAttacking()) {
         switch (input_param) {
-        // Enterキー押下時
+            // Enterキー押下時
         case '\r':
         {
             battle_controller_->ProceedToTheNextState();
