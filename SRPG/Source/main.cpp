@@ -612,6 +612,15 @@ public:
             break;
 
         case kSecondResult:
+            message_update_ = false;
+            second_attack_ = SecondAttack::kNothing;
+            if (attack_->hp <= 0 || defence_->hp <= 0) {
+                type_ = AttackType::kKnockdown;
+                break;
+            }
+            type_ = AttackType::kAttackMax;
+            break;
+
         case kKnockdown:
             message_update_ = false;
             second_attack_ = SecondAttack::kNothing;
