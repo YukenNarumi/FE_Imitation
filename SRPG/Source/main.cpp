@@ -833,10 +833,10 @@ private:
 
         case kKnockdown:
             if (attack_->hp <= 0) {
-                message_list_.push_back(attack_->name + "が倒された…");
+                message_list_.push_back(GetKnockdownMessage(attack_->name, attack_->team));
                 UnitDeath(attack_);
             } else {
-                message_list_.push_back(defence_->name + "を倒した!");
+                message_list_.push_back(GetKnockdownMessage(defence_->name, defence_->team));
                 UnitDeath(defence_);
             }
             break;
@@ -847,6 +847,20 @@ private:
         }
 
         message_update_ = true;
+    }
+
+    /// <summary>
+    /// ユニット死亡時のメッセージ
+    /// </summary>
+    /// <param name="unit_name"></param>
+    /// <param name="team"></param>
+    /// <returns></returns>
+    std::string GetKnockdownMessage(std::string unit_name, Team team) {
+        if (team == Team::kAlly) {
+            return unit_name + "が倒された…";
+        } else {
+            return unit_name + "を倒した!";
+        }
     }
 
     /// <summary>
