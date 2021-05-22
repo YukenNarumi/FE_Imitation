@@ -262,6 +262,18 @@ int GetUnitIndex(MapPosition search_position) {
 }
 
 /// <summary>
+/// 指定チームの行動済み判定をリセットする。
+/// </summary>
+/// <param name="turn"></param>
+void ResetDone(Team team) {
+    for (auto& unit : unit_list_) {
+        if (unit.team == team) {
+            unit.done = false;
+        }
+    }
+}
+
+/// <summary>
 /// 数値を0埋めした文字列に整形する
 /// </summary>
 /// <param name="digit"></param>
