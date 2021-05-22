@@ -649,9 +649,7 @@ public:
                 break;
             }
 
-            message_update_ = false;
-            second_attack_ = SecondAttack::kNothing;
-            type_ = AttackType::kAttackMax;
+            CleanUp();
             break;
 
         case kCounter:
@@ -660,9 +658,7 @@ public:
             break;
 
         case kCounterResult:
-            message_update_ = false;
-            second_attack_ = SecondAttack::kNothing;
-            type_ = AttackType::kAttackMax;
+            CleanUp();
 
             if (attack_->hp <= 0) {
                 type_ = AttackType::kKnockdown;
@@ -681,9 +677,7 @@ public:
             break;
 
         case kSecondResult:
-            message_update_ = false;
-            second_attack_ = SecondAttack::kNothing;
-            type_ = AttackType::kAttackMax;
+            CleanUp();
             if (attack_->hp <= 0 || defence_->hp <= 0) {
                 type_ = AttackType::kKnockdown;
                 break;
@@ -694,6 +688,7 @@ public:
             message_update_ = false;
             second_attack_ = SecondAttack::kNothing;
             type_ = AttackType::kAttackMax;
+            CleanUp();
             break;
 
         case kAttackMax:
@@ -881,6 +876,15 @@ private:
     void UnitDeath(UnitDescription* unit) {
         unit->position.x = -1;
         unit->position.y = -1;
+    }
+
+    /// <summary>
+    /// バトル終了時のクリーンアップ
+    /// </summary>
+    void CleanUp() {
+        message_update_ = false;
+        second_attack_ = SecondAttack::kNothing;
+        type_ = AttackType::kAttackMax;
     }
 
     // クリティカル発生時のダメージ補正(n倍)
