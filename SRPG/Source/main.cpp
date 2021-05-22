@@ -31,6 +31,9 @@ const constexpr int kUndefined = -1;
 // マップサイズ
 const constexpr int kMapWidth = 30;
 const constexpr int kMapHeight = 13;
+
+// ユニット関連の定数
+const constexpr int kMinHp = 0;
 }
 
 // 乱数生成器
@@ -854,6 +857,175 @@ private:
     bool message_update_;
 };
 BattleController* battle_controller_;
+
+/// <summary>
+/// 敵ユニット行動クラス
+/// </summary>
+class EnemyBehavior {
+public:
+    EnemyBehavior(UnitDescription* unit) :
+        unit_(unit) {
+        target_position_ = {kUndefined, kUndefined};
+    }
+    ~EnemyBehavior() {
+        unit_ = nullptr;
+    }
+
+    /// <summary>
+    /// 移動目標地点を設定する。
+    /// </summary>
+    /// <param name="target_position"></param>
+    void Setup(std::vector<UnitDescription>& unit_list) {
+        remain_move_ = unit_->move;
+
+        if (unit_->name == "ガザック") {
+            // 城に向かう
+            target_position_.x = 4;
+            target_position_.y = 4;
+            return;
+        }
+
+        // 雑魚はマルスに向かう
+        for (auto unit : unit_list) {
+            if (unit.job != Job::kLoad) {
+                continue;
+            }
+            target_position_ = unit.position;
+            break;
+        }
+    }
+
+    /// <summary>
+    /// 敵ユニットを行動させる。
+    /// </summary>
+    void Update() {
+        if (IsEnd()) {
+            return;
+        }
+
+        int attack_index = GetUnitIndex(unit_->position);
+        if (ProceedBattlePhase(attack_index)) {
+            return;
+        }
+
+        // 移動可能な地点に1マス分移動
+        Move(attack_index);
+
+        remain_move_ = CalculateRemainMove(remain_move_);
+
+        if (remain_move_ == 0) {
+            unit_->done = true;
+        }
+    }
+
+    bool IsCanMove(int search_index, MapPosition next_position, int remain_move) {
+        // 移動可能なマップか判定
+        if (!CanMove(search_index, next_position, remain_move)) {
+            return false;
+        }
+
+        // 移動先に味方ユニットがいない場合、移動可能
+        int unit_index = GetUnitIndex(next_position);
+        return (unit_index == kUndefined);
+    }
+
+    /// <summary>
+    /// ユニット情報を取得。
+    /// </summary>
+    UnitDescription* GetUnit() const {
+        return unit_;
+    }
+
+    /// <summary>
+    /// 行動済み判定を取得する。
+    ///  死亡時はtrue
+    /// </summary>
+    /// <returns></returns>
+    bool IsEnd() {
+        return unit_->done || unit_->hp <= kMinHp;
+    }
+
+private:
+    /// <summary>
+    /// 射程範囲内にプレイヤーのユニットがいる場合、バトルに移行する。
+    /// </summary>
+    /// <param name="attack_index"></param>
+    /// <returns></returns>
+    bool ProceedBattlePhase(int attack_index) {
+        int deffence_index = GetCanAttackUnit(attack_index);
+        if (kUndefined == deffence_index) {
+            return false;
+        }
+
+        if (!CanAttack(attack_index, deffence_index)) {
+            return false;
+        }
+
+        battle_controller_->Setup(unit_, &unit_list_[deffence_index]);
+        unit_->done = true;
+        phase_ = Phase::kSelectUnit;
+        return true;
+    }
+
+    /// <summary>
+    /// ユニットを移動させる。
+    /// </summary>
+    /// <param name="attack_index"></param>
+    void Move(int attack_index) {
+        std::vector<MapPosition> next_position_list = {
+            MapPosition{CalculateGreaterOrLesser(unit_->position.x, target_position_.x), unit_->position.y},
+            MapPosition{unit_->position.x, CalculateGreaterOrLesser(unit_->position.y, target_position_.y)},
+        };
+
+        for (auto position : next_position_list) {
+            // 移動できない場合、スキップする。
+            if (position.x == unit_->position.x && position.y == unit_->position.y) {
+                continue;
+            }
+
+            if (IsCanMove(attack_index, position, remain_move_)) {
+                unit_->position = position;
+                return;
+            }
+        }
+
+        // 行き止まりの場合
+        remain_move_ = 0;
+    }
+
+    /// <summary>
+    /// 移動方向を計算する。
+    /// </summary>
+    /// <param name="base"></param>
+    /// <param name="target"></param>
+    /// <returns></returns>
+    int CalculateGreaterOrLesser(int base, int target) {
+        if (base < target) {
+            base++;
+        } else if (base > target) {
+            base--;
+        }
+        return base;
+    }
+
+    /// <summary>
+    /// 残り移動力を計算する。
+    /// </summary>
+    /// <param name="remain_move"></param>
+    /// <returns></returns>
+    int CalculateRemainMove(int remain_move) {
+        JobDescription job = job_list_[unit_->job];
+        int cell = cells[unit_->position.y][unit_->position.x];
+        int cost = job.consts[cell];
+        int result = max(remain_move - cost, 0);
+        return result;
+    }
+
+private:
+    int remain_move_;
+    UnitDescription* unit_;
+    MapPosition target_position_;
+};
 
 /// <summary>
 /// カーソル座標と一致するか確認
