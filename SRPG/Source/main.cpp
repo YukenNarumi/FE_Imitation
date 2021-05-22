@@ -374,38 +374,53 @@ MapPosition cursor_position{0, 0};
 int selected_unit = kUndefined;
 
 /// <summary>
-/// 移動可能範囲の塗りつぶし判定更新
+/// 移動可能か確認する。
 /// </summary>
 /// <param name="unit_index"></param>
 /// <param name="search_position"></param>
 /// <param name="remain_move"></param>
-void FillCanMoveCells(int unit_index, MapPosition search_position, int remain_move) {
+/// <returns></returns>
+bool CanMove(int unit_index, MapPosition search_position, int remain_move) {
     if (search_position.x < 0 || kMapWidth <= search_position.x) {
-        return;
+        return false;
     }
 
     if (search_position.y < 0 || kMapHeight <= search_position.y) {
-        return;
+        return false;
     }
 
     int search_unit_index = GetUnitIndex(search_position);
     if (kUndefined < search_unit_index && unit_list_[unit_index].team != unit_list_[search_unit_index].team) {
-        return;
+        return false;
     }
 
     int move_cost = job_list_[unit_list_[unit_index].job].consts[cells[search_position.y][search_position.x]];
 
     // 移動不可の地形の場合、スキップする
     if (move_cost <= kUndefined) {
-        return;
+        return false;
     }
 
     if (remain_move < move_cost) {
+        return false;
+    }
+
+    return true;
+}
+
+/// <summary>
+/// 移動可能範囲の塗りつぶし判定更新
+/// </summary>
+/// <param name="unit_index"></param>
+/// <param name="search_position"></param>
+/// <param name="remain_move"></param>
+void FillCanMoveCells(int unit_index, MapPosition search_position, int remain_move) {
+    if (!CanMove(unit_index, search_position, remain_move)) {
         return;
     }
 
     fill[search_position.y][search_position.x] = true;
-    remain_move -= move_cost;
+    remain_move -= job_list_[unit_list_[unit_index].job].consts[cells[search_position.y][search_position.x]];
 
     if (remain_move <= 0) {
         return;
