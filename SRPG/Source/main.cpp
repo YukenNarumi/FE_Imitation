@@ -468,6 +468,11 @@ void SetupFillCanMoveCells(MapPosition start_position) {
         return;
     }
 
+    // 行動済みの場合、スキップ
+    if (unit_list_[index].done) {
+        return;
+    }
+
     // 塗りつぶし判定初期化
     memset(fill, 0, sizeof(fill));
     for (auto direct : directions) {
