@@ -52,13 +52,23 @@ struct MoveVector {
 
 // ゲームのフェーズ
 enum Phase {
+    kStartAlly,
     kSelectUnit,
     kSetMovePosition,
     kSelectAttackUnit,
+    kStartEnemy,
 
     kPhaseMax,
 };
 Phase phase_ = Phase::kSelectUnit;
+
+enum Turn {
+    kAllyTurn,
+    kEnemyTurn,
+
+    kTurnMax,
+};
+Turn turn_ = Turn::kAllyTurn;
 
 // 方角
 enum Direction {
@@ -370,15 +380,16 @@ std::string DisplayCellParameter(MapPosition position) {
 /// <param name="phase"></param>
 /// <returns></returns>
 std::string DisplayPhaseGuidance(Phase phase) {
-    std::string result;
+    std::string result = "";
     switch (phase_) {
-    case kSelectUnit:       result = "ユニットを選択してください。";  break;
-    case kSetMovePosition:  result = "移動先を設定してください。";  break;
-    case kSelectAttackUnit: result = "攻撃対象を選んでください。(自身を選択で待機)";  break;
+    case kStartAlly:        result = "味方のターン";  break;
+    case kSelectUnit:       result = "ユニットを選択してください。(e:ターン終了)\n\n";  break;
+    case kSetMovePosition:  result = "移動先を設定してください。\n\n";  break;
+    case kSelectAttackUnit: result = "攻撃対象を選んでください。(自身を選択で待機)\n\n";  break;
+    case kStartEnemy:       result = "敵のターン";  break;
     default:
         break;
     }
-    result += "\n\n";
     return result;
 }
 
@@ -1171,14 +1182,25 @@ std::string DisplayMap() {
 std::string Draw() {
     std::string message = DisplayMap();
 
+    message += DisplayPhaseGuidance(phase_);
+    if (phase_ == Phase::kStartAlly || phase_ == Phase::kStartEnemy) {
+        return message;
+    }
+
     if (battle_controller_->IsAttacking()) {
         message += battle_controller_->Message();
         return message;
     }
 
-    message += DisplayPhaseGuidance(phase_);
+    MapPosition unit_position;
+    if (turn_ == Turn::kAllyTurn) {
+        unit_position = cursor_position;
+    } else {
+        UnitDescription* unit = enemy_behavior_manager_->GetUnit();
+        unit_position = (unit == nullptr) ? MapPosition{kUndefined, kUndefined} : unit->position;
+    }
 
-    int unit_index = GetUnitIndex(MapPosition{cursor_position.x, cursor_position.y});
+    int unit_index = GetUnitIndex(unit_position);
     if (kUndefined < unit_index) {
         message += DisplayUnitParameter(unit_index);
     } else {
@@ -1195,6 +1217,21 @@ std::string Draw() {
 void MoveCursor(WPARAM input_param) {
     AtlTrace("KeyUp = %Xh\n", input_param);
 
+    if (phase_ == Phase::kStartAlly || phase_ == Phase::kStartEnemy) {
+        switch (input_param) {
+            // Enterキー押下時
+        case '\r':
+        {
+            if (phase_ == Phase::kStartAlly) {
+                phase_ = Phase::kSelectUnit;
+            } else {
+                phase_ = Phase::kPhaseMax;
+            }
+        }
+        }
+        return;
+    }
+
     // 攻撃中はカーソル移動等を行わない
     if (battle_controller_->IsAttacking()) {
         switch (input_param) {
@@ -1202,6 +1239,24 @@ void MoveCursor(WPARAM input_param) {
         case '\r':
         {
             battle_controller_->ProceedToTheNextState();
+        }
+        }
+        return;
+    }
+
+    if (turn_ == Turn::kEnemyTurn) {
+        switch (input_param) {
+            // Enterキー押下時
+        case '\r':
+        {
+            enemy_behavior_manager_->Update();
+
+            // TODO:ここの判定前に、バトルに移行したかの判定が必要?
+            if (enemy_behavior_manager_->IsEnd()) {
+                phase_ = Phase::kStartAlly;
+                turn_ = Turn::kAllyTurn;
+                ResetDone(Team::kAlly);
+            }
         }
         }
         return;
@@ -1254,6 +1309,15 @@ void MoveCursor(WPARAM input_param) {
             break;
         }
         }
+        break;
+    }
+
+    case 'e':
+    {
+        phase_ = Phase::kStartEnemy;
+        turn_ = Turn::kEnemyTurn;
+        ResetDone(Team::kEnemy);
+        enemy_behavior_manager_->Setup(unit_list_);
         break;
     }
     }
@@ -1416,6 +1480,7 @@ INT WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, INT) {
 
     // クラス生成
     battle_controller_ = new BattleController();
+    enemy_behavior_manager_ = new EnemyBehaviorManager(unit_list_);
 
     //アプリケーションウィンドウの生成
     HWND hWnd = CreateWindow(kWindowTitle,
