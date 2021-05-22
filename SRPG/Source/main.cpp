@@ -511,6 +511,21 @@ int CalculateUnitsDistance(UnitDescription unit0, UnitDescription unit1) {
 /// <param name="attack"></param>
 /// <param name="defence"></param>
 /// <returns></returns>
+bool CanAttackUnit(UnitDescription attack, UnitDescription defence) {
+    // 同じチームは範囲外扱い
+    if (attack.team == defence.team) {
+        return false;
+    }
+
+    return (CalculateUnitsDistance(attack, defence) <= Weapon_list_[attack.weapon].range_max);
+}
+
+/// <summary>
+/// 対象ユニットに攻撃可能か判定する。
+/// </summary>
+/// <param name="attack"></param>
+/// <param name="defence"></param>
+/// <returns></returns>
 bool CanAttack(int attack, int defence) {
     if (attack <= kUndefined || defence <= kUndefined) {
         return false;
@@ -519,12 +534,7 @@ bool CanAttack(int attack, int defence) {
     UnitDescription attack_unit = unit_list_[attack];
     UnitDescription defence_unit = unit_list_[defence];
 
-    // 同じチームは範囲外扱い
-    if (attack_unit.team == defence_unit.team) {
-        return false;
-    }
-
-    return (CalculateUnitsDistance(attack_unit, defence_unit) <= Weapon_list_[attack_unit.weapon].range_max);
+    return CanAttackUnit(attack_unit, defence_unit);
 }
 
 /// <summary>
@@ -580,6 +590,7 @@ public:
         attack_ = attack;
         defence_ = defence;
         message_update_ = false;
+        within_range_ = CanAttackUnit(*defence_, *attack_);
         Update();
     }
 
@@ -620,11 +631,27 @@ public:
 
         case kNomalResult:
             message_update_ = false;
-            if (0 < defence_->hp) {
-                type_ = AttackType::kCounter;
-            } else {
+            if (defence_->hp <= kMinHp) {
                 type_ = AttackType::kKnockdown;
+                break;
             }
+
+            // 射程内の場合、反撃
+            if (within_range_) {
+                type_ = AttackType::kCounter;
+                break;
+            }
+
+            // 攻撃側が再攻撃可能か判定
+            second_attack_ = JudgeSecondAttack();
+            if (second_attack_ == SecondAttack::kAttack) {
+                type_ = AttackType::kSecond;
+                break;
+            }
+
+            message_update_ = false;
+            second_attack_ = SecondAttack::kNothing;
+            type_ = AttackType::kAttackMax;
             break;
 
         case kCounter:
@@ -634,15 +661,16 @@ public:
 
         case kCounterResult:
             message_update_ = false;
+            second_attack_ = SecondAttack::kNothing;
+            type_ = AttackType::kAttackMax;
+
             if (attack_->hp <= 0) {
                 type_ = AttackType::kKnockdown;
                 break;
             }
 
             second_attack_ = JudgeSecondAttack();
-            if (second_attack_ == SecondAttack::kNothing) {
-                type_ = AttackType::kAttackMax;
-            } else {
+            if (second_attack_ != SecondAttack::kNothing) {
                 type_ = AttackType::kSecond;
             }
             break;
@@ -655,11 +683,11 @@ public:
         case kSecondResult:
             message_update_ = false;
             second_attack_ = SecondAttack::kNothing;
+            type_ = AttackType::kAttackMax;
             if (attack_->hp <= 0 || defence_->hp <= 0) {
                 type_ = AttackType::kKnockdown;
                 break;
             }
-            type_ = AttackType::kAttackMax;
             break;
 
         case kKnockdown:
@@ -866,6 +894,9 @@ private:
 
     std::vector<std::string> message_list_;
     bool message_update_;
+
+    // 反撃側の攻撃範囲内判定
+    bool within_range_;
 };
 BattleController* battle_controller_;
 
