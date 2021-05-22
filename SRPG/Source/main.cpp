@@ -1028,6 +1028,96 @@ private:
 };
 
 /// <summary>
+/// 敵ユニット行動管理クラス
+/// </summary>
+class EnemyBehaviorManager {
+public:
+    EnemyBehaviorManager(std::vector<UnitDescription>& unit_list) {
+        unit_list_ = std::vector<EnemyBehavior*>();
+
+        for (auto& unit : unit_list) {
+            if (unit.team == Team::kAlly) {
+                continue;
+            }
+            unit_list_.push_back(new EnemyBehavior(&(unit)));
+        }
+
+        target_position_ = {kUndefined, kUndefined};
+    }
+    ~EnemyBehaviorManager() {
+        unit_list_.clear();
+    }
+
+    /// <summary>
+    /// 移動目標地点を設定する。
+    /// </summary>
+    /// <param name="unit_list"></param>
+    void Setup(std::vector<UnitDescription>& unit_list) {
+        for (auto unit : unit_list_) {
+            if (unit->IsEnd()) {
+                continue;
+            }
+            unit->Setup(unit_list);
+        }
+    }
+
+    /// <summary>
+    /// 敵ユニットを行動させる。
+    /// </summary>
+    void Update() {
+        EnemyBehavior* unit = GetBehaviorUnit();
+        if (unit == nullptr) {
+            return;
+        }
+        unit->Update();
+    }
+
+    /// <summary>
+    /// 行動中のユニットを取得する。
+    /// </summary>
+    /// <returns></returns>
+    UnitDescription* GetUnit() const {
+        for (auto unit : unit_list_) {
+            if (unit->IsEnd()) {
+                continue;
+            }
+            return unit->GetUnit();
+        }
+
+        return nullptr;
+    }
+
+    /// <summary>
+    /// 全ユニットが行動済みか確認する。
+    /// </summary>
+    /// <returns></returns>
+    bool IsEnd() {
+        EnemyBehavior* unit = GetBehaviorUnit();
+        return (unit == nullptr);
+    }
+
+private:
+    /// <summary>
+    /// 行動するユニットを取得する。
+    /// </summary>
+    /// <returns></returns>
+    EnemyBehavior* GetBehaviorUnit() {
+        for (auto unit : unit_list_) {
+            if (unit->IsEnd()) {
+                continue;
+            }
+            return unit;
+        }
+
+        return nullptr;
+    }
+
+    std::vector<EnemyBehavior*> unit_list_;
+    MapPosition target_position_;
+};
+EnemyBehaviorManager* enemy_behavior_manager_;
+
+/// <summary>
 /// カーソル座標と一致するか確認
 /// </summary>
 /// <param name="x"></param>
